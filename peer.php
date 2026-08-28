@@ -23,7 +23,10 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 */
-require_once("include/init.inc.php");
+const SANITY_LOCK_PATH = __DIR__.'/tmp/sanity-lock';
+require_once __DIR__.'/include/init.inc.php';
+header('Content-Type: application/json');
+
 $trx = new Transaction();
 $block = new Block();
 $q = $_GET['q'];
@@ -38,6 +41,12 @@ if ($_POST['coin'] != $_config['coin']) {
 }
 $ip = san_ip($_SERVER['REMOTE_ADDR']);
 $ip = filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE);
+
+// there should not be any local peering attempts
+if($_SERVER['REMOTE_ADDR']==$_SERVER['SERVER_ADDR']){
+        api_err("invalid-ip");
+}
+
 
 // peer with the current node
 if ($q == "peer") {
@@ -62,7 +71,7 @@ if ($q == "peer") {
         [":hostname" => $hostname, ":ip" => $ip]
     );
     if ($res == 1) {
-        if ($data['repeer'] == 1) {
+        if (isset($data['repeer']) && $data['repeer'] == 1) {
             $res = peer_post($hostname."/peer.php?q=peer", ["hostname" => $_config['hostname']]);
             if ($res !== false) {
                 api_echo("re-peer-ok");
@@ -132,6 +141,8 @@ if ($q == "peer") {
     }
     $acc = new Account();
     $src = $acc->get_address($data['public_key']);
+    $val = $data['val'] ?? 0;
+    $fee = $data['fee'] ?? 0;
     // make sure the sender has enough balance
     $balance = $db->single("SELECT balance FROM accounts WHERE id=:id", [":id" => $src]);
     if ($balance < $val + $fee) {
@@ -143,13 +154,14 @@ if ($q == "peer") {
     if ($balance - $memspent < $val + $fee) {
         api_err("Not enough funds (mempool)");
     }
-
+  
     // add to mempool
     $trx->add_mempool($data, $ip);
 
     // rebroadcast the transaction to some peers unless the transaction is smaller than the average size of transactions in mempool - protect against garbage data flooding
     $res = $db->row("SELECT COUNT(1) as c, sum(val) as v FROM  mempool ", [":src" => $data['src']]);
     if ($res['c'] < $_config['max_mempool_rebroadcast'] && $res['v'] / $res['c'] < $data['val']) {
+        $data['id']=escapeshellarg(san($data['id']));
         system("php propagate.php transaction '$data[id]'  > /dev/null 2>&1  &");
     }
     api_echo("transaction-ok");
@@ -161,6 +173,14 @@ if ($q == "peer") {
         _log('['.$ip."] Block rejected due to sanity sync");
         api_err("sanity-sync");
     }
+    $sanity_lock=fopen(SANITY_LOCK_PATH,'w+');
+    if(!flock($sanity_lock, LOCK_EX | LOCK_NB)){
+        _log('['.$ip."] Block rejected due to sanity sync");
+        api_err("sanity-sync");
+    }
+    // make sure sanity doesn't start while we add a new block and no other blocks are added at the same time
+    flock($sanity_lock, LOCK_EX);
+
     $data['id'] = san($data['id']);
     $current = $block->current();
     // block already in the blockchain
@@ -185,6 +205,7 @@ if ($q == "peer") {
         if ($accept_new) {
             // if the new block is accepted, run a microsanity to sync it
             _log('['.$ip."] Starting microsanity - $data[height]");
+            $ip=escapeshellarg($ip);
             system("php sanity.php microsanity '$ip'  > /dev/null 2>&1  &");
             api_echo("microsanity");
         } else {
@@ -200,7 +221,7 @@ if ($q == "peer") {
             if (!$pr) {
                 api_err("block-too-old");
             }
-            $peer_host = base58_encode($pr['hostname']);
+            $peer_host = escapeshellcmd(base58_encode($pr['hostname']));
             $pr['ip'] = escapeshellcmd(san_ip($pr['ip']));
             system("php propagate.php block current '$peer_host' '$pr[ip]'   > /dev/null 2>&1  &");
             _log('['.$ip."] block too old, sending our current block - $data[height]");
@@ -243,6 +264,7 @@ if ($q == "peer") {
     _log('['.$ip."] block ok, repropagating - $data[height]");
 
     // send it to all our peers
+    $data['id']=escapeshellcmd(san($data['id']));
     system("php propagate.php block '$data[id]' all all linear > /dev/null 2>&1  &");
     api_echo("block-ok");
 } // return the current block, used in syncing
@@ -252,7 +274,6 @@ elseif ($q == "currentBlock") {
 } // return a specific block, used in syncing
 elseif ($q == "getBlock") {
     $height = intval($data['height']);
-
     $export = $block->export("", $height);
     if (!$export) {
         api_err("invalid-block");

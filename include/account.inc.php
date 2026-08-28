@@ -35,7 +35,39 @@ class Account
             return 'RncXQuc7S7aWkvTUJSHEFvYoV3ntAf7bfxEHjSiZNBvQV37MzZtg44L7GAV7szZ3uV8qWqikBewa3piZMqzBqm';
         } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCyjKMBY4ihhJ2G25EVezg7KnoCBVbhdvWfqzNA4LC5R7wgu3VNfJgvqkCq9sKKZcCoCpX6Qr9cN882MoXsfGTvZoj') {
             return 'Rq53oLzpCrb4BdJZ1jqQ2zsixV2ukxVdM4H9uvUhCGJCz1q2wagvuXV4hC6UVwK7HqAt1FenukzhVXgzyG1y32';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCzZtEj6zAW8WVB6AbDLndbQZrnH2R5Nmpk1sLyHXzqyp4P5cyJAbnUpR5UdG8sBCCuZekWSBHgWNMaGS317vPsVuG'){
+            // mixed keys badly generated address
+            return '3CWXXqpzuda85MaPpgYRee8d7a44wzemqztfFfeZDyEysQ15cN6gZNsPT32MHwjrzbENDvkqKtADoCBgVVqXWP2g';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCwYhtqidHRVigBiQiun5csb9YnZzcvmSt7aCVS6nH2gYykLr9pQfJHP8bTtYTMkU1WLdmeTkNPGDujYWKjPSGU8XX'){
+            // broken wallet due to webwallet bug
+            return '4JstC5anTNMpY2zmUHt2LDmQXsMQvkh7d9qHBjBhRahAsWVTyyS9RPYMRdmcqdVPSDUQsXJfGyPFMn6y6R9M5QQ7';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCwoUzVYoaDZGausEDEg5JMtiRQvdmuuv1FKvCxUp6m8iMJhKbohtH75wXPBgi4wYPMSUw4himHeJ3qnDpAQnKSsJU'){
+            // stolen coins hf recovery
+            return '4VLRngC3U24YdusKQ4rGfCX4DDfBUcNemH419wUS5xe2uUf3ku1CXq6RCfGoiZvDK61upmLfrb64YWubyh5eUG4Y';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCvgAVPik2t9yfM63rDCy13opmvejvMXadRb6qKjEoaiFkGCJHKBUSzggaEtgyDVkRk7ajREQjRrN6J4EcoXTzGM3p'){
+            // stolen coins hf recovery
+            return 'SBWPS7Yu4X4ZQFY9n27bkBL5AnDRveUBbfbZWwhEN1tWZnTCEc8kvx7ddfoaqhjw7tw8rQULk2fEgSB1r2vWqKp';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCz1Adkpo6MRTogSUKLtEh5NKo1Y8sumnNKqhRW8w2bZtVfMT4sfbStg8ycqtmQNDztvUE39MVHnXmCDtpmv9KKdQN'){
+            // stolen coins hf recovery
+            return 'reMoRxfiUxtoj7RD1aDH5yNfeuXEyTj2XiHaUBdVUhk8Wt5f4VLWrqge6J5yE9BGkVLFPqfS6ZYvj4ocWhbZhru';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCxXrhv7wkhX4R2YjyRNfssf15wTksz5Ev4FFGfCmhcUL7kt5aXRvh6xknQf5HHzDo4GsG523wBYcFhiAkmBL1kkUo'){
+            // stolen coins hf recovery
+            return '3goaif939N4xy5ThT7iq2GhBgwjrS4buhhTtTQkXrzarKcsYvyg5PU8KVgzrSfgFfhnZGNx9WseaR2JSUpYn1Vch';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCzhTJ5G37ijQcgdzUsMMVyAPFaxLCyssQjqYF1g1Zsr3XkzYux3Dt75y3DRmXmx6wiNTf7uKxAGFaQA7qao7TXp9j'){
+            // stolen coins hf recovery
+            return 'LtjGjTTurwLNZLbexAbusCRS5SNYhFydMuFdPTaYFRD3WoL2q67tidsrd7qnX8czmTBhrDyrdheP5gCwCbAHBBd';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCwrgAsdSZtv9e4Ldw2mzg7HwQMHzG1FFVzoRtENwDRZxhRTwSGYU4oUXVLzNWNqpRZ6iEZXenxUANScwr7yDET7xA'){
+            // stolen coins hf recovery
+            return 'aSpfMMbxA8U1rMqBgYoQtXhUyAKyhBJHY17CEW4V3ttgRsvpuZ1Dg3xYc1rcMeKnP2gT2sxnn7vHpmLAVVPQv7w';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCzPi4ZmDK5E7vNVz14AiJmvcT9UbxXDDWzNVYt973Sqgt6p6BQtuqkJ3X3UM92mbjxVLg3xzmhZricuUSx5J811nW'){
+            // stolen coins hf recovery
+            return '98MsWpiv3fcutf4Mm94wYKZeeS556EAvMWEBLc12y5nf5QzNtD6hDfCuWcJMUr9Q9qmbj8kS326EGuiiTW7YJDo';
+        } elseif ($hash == 'PZ8Tyr4Nx8MHsRAGMpZmZ6TWY63dXWSCz9iKvAxdReMiDYmBWJb3GnjeTnNLwE8y7fuyBwFDbRLpECwnscbXSLGXMmvPMbMMRYSnnc7aTyLJBzw7tqxGNw4K'){
+            // stolen coins hf recovery
+            return '2xQGMH8qQuaTeKSYya5wYPWA9dgqiKBBDSeDWu1aUuBhKi8LnsukknqcUDRdzS7VVeC7aezK6Azhkx6L7H24pUjo';
         }
+
+
 
         // hashes 9 times in sha512 (binary) and encodes in base58
         for ($i = 0; $i < 9;
@@ -103,10 +135,10 @@ class Account
         if (strlen($id)<4||strlen($id)>25) {
             return false;
         }
-        if($orig!=$id){
+        if ($orig!=$id) {
             return false;
         }
-        
+        // making sure the same alias can only be used in one place
         if ($db->single("SELECT COUNT(1) FROM accounts WHERE alias=:alias", [":alias"=>$id])==0) {
             return true;
         } else {
@@ -115,12 +147,16 @@ class Account
     }
 
     //check if an account already has an alias
-    public function has_alias($public_key){
+    public function has_alias($public_key)
+    {
         global $db;
         $public_key=san($public_key);
-        $res=$db->single("SELECT COUNT(1) FROM accounts WHERE public_key=:public_key AND alias IS NOT NULL",[":public_key"=>$public_key]);
-        if($res!=0) return true;
-        else return false;
+        $res=$db->single("SELECT COUNT(1) FROM accounts WHERE public_key=:public_key AND alias IS NOT NULL", [":public_key"=>$public_key]);
+        if ($res!=0) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     //check alias validity
@@ -137,25 +173,27 @@ class Account
         if (strlen($id)<4||strlen($id)>25) {
             return false;
         }
-        if($orig!=$id){
+        if ($orig!=$id) {
             return false;
         }
         return $db->single("SELECT COUNT(1) FROM accounts WHERE alias=:alias", [":alias"=>$id]);
     }
 
     //returns the account of an alias
-    public function alias2account($alias){
+    public function alias2account($alias)
+    {
         global $db;
         $alias=strtoupper($alias);
-        $res=$db->single("SELECT id FROM accounts WHERE alias=:alias LIMIT 1",[":alias"=>$alias]);
+        $res=$db->single("SELECT id FROM accounts WHERE alias=:alias LIMIT 1", [":alias"=>$alias]);
         return $res;
     }
 
     //returns the alias of an account
-    public function account2alias($id){
+    public function account2alias($id)
+    {
         global $db;
         $id=san($id);
-        $res=$db->single("SELECT alias FROM accounts WHERE id=:id LIMIT 1",[":id"=>$id]);
+        $res=$db->single("SELECT alias FROM accounts WHERE id=:id LIMIT 1", [":id"=>$id]);
         return $res;
     }
     // check the validity of an address. At the moment, it checks only the characters to be base58 and the length to be >=70 and <=128.
@@ -212,13 +250,14 @@ class Account
         $block = new Block();
         $current = $block->current();
         $public_key = $this->public_key($id);
+        $alias = $this->account2alias($id);
         $limit = intval($limit);
         if ($limit > 100 || $limit < 1) {
             $limit = 100;
         }
         $res = $db->run(
-            "SELECT * FROM transactions WHERE dst=:dst or public_key=:src ORDER by height DESC LIMIT :limit",
-            [":src" => $public_key, ":dst" => $id, ":limit" => $limit]
+            "SELECT * FROM transactions WHERE dst=:dst or public_key=:src or dst=:alias ORDER by height DESC LIMIT :limit",
+            [":src" => $public_key, ":dst" => $id, ":limit" => $limit, ":alias"=>$alias]
         );
 
         $transactions = [];
@@ -299,11 +338,13 @@ class Account
         return $res;
     }
 
-    public function get_masternode($public_key){
+    public function get_masternode($public_key)
+    {
         global $db;
         $res = $db->row("SELECT * FROM masternode WHERE public_key=:public_key", [":public_key" => $public_key]);
-        if(empty($res['public_key'])) return false;
+        if (empty($res['public_key'])) {
+            return false;
+        }
         return $res;
     }
-
 }

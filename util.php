@@ -29,8 +29,8 @@ if (php_sapi_name() !== 'cli') {
     die("This should only be run as cli");
 }
 
-require_once("include/init.inc.php");
-$cmd = trim($argv[1]);
+require_once __DIR__.'/include/init.inc.php';
+$cmd = trim($argv[1] ?? "");
 
 /**
  * @api {php util.php} clean Clean
@@ -43,6 +43,10 @@ $cmd = trim($argv[1]);
  */
 
 if ($cmd == 'clean') {
+    if (file_exists("tmp/sanity-lock")) {
+        die("Sanity running. Wait for it to finish");
+    }
+    touch("tmp/sanity-lock");
     $db->run("SET foreign_key_checks=0;");
     $tables = ["accounts", "transactions", "mempool", "masternode","blocks"];
     foreach ($tables as $table) {
@@ -51,6 +55,7 @@ if ($cmd == 'clean') {
     $db->run("SET foreign_key_checks=1;");
 
     echo "\n The database has been cleared\n";
+    unlink("tmp/sanity-lock");
 } /**
  * @api {php util.php} pop Pop
  * @apiName pop
@@ -64,9 +69,14 @@ if ($cmd == 'clean') {
  */
 
 elseif ($cmd == 'pop') {
-    $no = intval($argv[2]);
+    if (file_exists("tmp/sanity-lock")) {
+        die("Sanity running. Wait for it to finish");
+    }
+    touch("tmp/sanity-lock");
+    $no = intval($argv[2] ?? 0);
     $block = new Block();
     $block->pop($no);
+    unlink("tmp/sanity-lock");
 } /**
  * @api {php util.php} block-time Block-time
  * @apiName block-time
@@ -93,7 +103,7 @@ elseif ($cmd == 'block-time') {
         }
         $time = $t - $x['date'];
         $t = $x['date'];
-        echo "$x[height] -> $time\n";
+        echo "$x[height]\t\t$time\t\t$x[difficulty]\n";
         $end = $x['date'];
     }
     echo "Average block time: ".ceil(($start - $end) / 100)." seconds\n";
@@ -114,7 +124,8 @@ elseif ($cmd == 'block-time') {
 
 
 elseif ($cmd == "peer") {
-    $res = peer_post($argv[2]."/peer.php?q=peer", ["hostname" => $_config['hostname']]);
+    $peer=trim($argv[2] ?? "");
+    $res = peer_post($peer."/peer.php?q=peer", ["hostname" => $_config['hostname']]);
     if ($res !== false) {
         echo "Peering OK\n";
     } else {
@@ -178,12 +189,12 @@ elseif ($cmd == "current") {
  *
  */
 elseif ($cmd == "blocks") {
-    $height = intval($argv[2]);
-    $limit = intval($argv[3]);
+    $height = intval($argv[2] ?? 0);
+    $limit = intval($argv[3] ?? 100);
     if ($limit < 1) {
         $limit = 100;
     }
-    $r = $db->run("SELECT * FROM blocks WHERE height>:height ORDER by height ASC LIMIT $limit", [":height" => $height]);
+    $r = $db->run("SELECT * FROM blocks WHERE height>:height ORDER by height ASC LIMIT :limit", [":height" => $height, ":limit"=>$limit]);
     foreach ($r as $x) {
         echo "$x[height]\t$x[id]\n";
     }
@@ -276,7 +287,7 @@ elseif ($cmd == "mempool") {
  * Peer removed
  */
 elseif ($cmd == "delete-peer") {
-    $peer = trim($argv[2]);
+    $peer = trim($argv[2] ?? 0);
     if (empty($peer)) {
         die("Invalid peer");
     }
@@ -309,7 +320,7 @@ elseif ($cmd == "delete-peer") {
  */
 elseif ($cmd == "peers-block") {
     $only_diff = false;
-    if ($argv[2] == "diff") {
+    if (isset($argv[2]) && $argv[2] == "diff") {
         $current = $db->single("SELECT height FROM blocks ORDER by height DESC LIMIT 1");
         $only_diff = true;
     }
@@ -317,7 +328,7 @@ elseif ($cmd == "peers-block") {
     foreach ($r as $x) {
         $a = peer_post($x['hostname']."/peer.php?q=currentBlock", [], 5);
         $enc = base58_encode($x['hostname']);
-        if ($argv[2] == "debug") {
+        if (isset($argv[2]) && $argv[2] == "debug") {
             echo "$enc\t";
         }
         if ($only_diff == false || $current != $a['height']) {
@@ -340,7 +351,7 @@ elseif ($cmd == "peers-block") {
  */
 
 elseif ($cmd == "balance") {
-    $id = san($argv[2]);
+    $id = san($argv[2] ?? "");
     $res = $db->single(
         "SELECT balance FROM accounts WHERE id=:id OR public_key=:id2 LIMIT 1",
         [":id" => $id, ":id2" => $id]
@@ -381,7 +392,7 @@ elseif ($cmd == "balance") {
  * }
  */
 elseif ($cmd == "block") {
-    $id = san($argv[2]);
+    $id = san($argv[2] ?? "");
     $res = $db->row("SELECT * FROM blocks WHERE id=:id OR height=:id2 LIMIT 1", [":id" => $id, ":id2" => $id]);
 
     var_dump($res);
@@ -400,7 +411,7 @@ elseif ($cmd == "block") {
  * The address is valid
  */
 elseif ($cmd == "check-address") {
-    $dst = trim($argv[2]);
+    $dst = trim($argv[2] ?? "");
     $acc = new Account();
     if (!$acc->valid($dst)) {
         die("Invalid address");
@@ -411,7 +422,7 @@ elseif ($cmd == "check-address") {
     }
 
     echo "The address is valid\n";
-} 
+}
 /**
  * @api {php util.php} get-address Get-Address
  * @apiName get-address
@@ -428,7 +439,7 @@ elseif ($cmd == "check-address") {
  */
 
 elseif ($cmd == 'get-address') {
-    $public_key = trim($argv2);
+    $public_key = trim($argv[2] ?? "");
     if (strlen($public_key) < 32) {
         die("Invalid public key");
     }
@@ -443,10 +454,149 @@ elseif ($cmd == 'get-address') {
  * php util.php clean-blacklist
  *
  */
-
 } elseif ($cmd == 'clean-blacklist') {
-   $db->run("UPDATE peers SET blacklisted=0, fails=0, stuckfail=0");
-   echo "All the peers have been removed from the blacklist\n";
+    $db->run("UPDATE peers SET blacklisted=0, fails=0, stuckfail=0");
+    echo "All the peers have been removed from the blacklist\n";
+} elseif ($cmd == 'resync-accounts') {
+    die("Currently disabled due to asset implementation.");
+    // resyncs the balance on all accounts
+    if (file_exists("tmp/sanity-lock")) {
+        die("Sanity running. Wait for it to finish");
+    }
+    touch("tmp/sanity-lock");
+    // lock table to avoid race conditions on blocks
+    $db->exec("LOCK TABLES blocks WRITE, accounts WRITE, transactions WRITE, mempool WRITE, masternode WRITE, peers write, config WRITE, assets WRITE, assets_balance WRITE, assets_market WRITE");
+
+
+    $r=$db->run("SELECT * FROM accounts");
+    foreach ($r as $x) {
+        $alias=$x['alias'];
+        if (empty($alias)) {
+            $alias="A";
+        }
+        $rec=$db->single("SELECT SUM(val) FROM transactions WHERE (dst=:id or dst=:alias) AND (height<80000 OR version!=100) and version<111", [":id"=>$x['id'], ":alias"=>$alias]);
+        $releases=$db->single("SELECT COUNT(1) FROM transactions WHERE dst=:id AND version=103", [":id"=>$x['id']]);
+
+        if ($releases>0) { //masternode releases
+            $rec+=$releases*100000;
+
+        }
+        $spent=$db->single("SELECT SUM(val+fee) FROM transactions WHERE public_key=:pub AND version>0", [":pub"=>$x['public_key']]);
+        if ($spent==false) {
+            $spent=0;
+        }
+        $balance=round(($rec-$spent), 8);
+        if ($x['balance']!=$balance) {
+            echo "rec: $rec, spent: $spent, bal: $x[balance], should be: $balance - $x[id] $x[public_key]\n";
+            if (trim($argv[2] ?? "")!="check") {
+                $db->run("UPDATE accounts SET balance=:bal WHERE id=:id", [":id"=>$x['id'], ":bal"=>$balance]);
+            }
+        }
+    }
+    $db->exec("UNLOCK TABLES");
+    echo "All done";
+    unlink("tmp/sanity-lock");
+} elseif ($cmd=="compare-blocks") {
+    $block=new Block();
+
+    $current=$block->current();
+    $peer=trim($argv[2] ?? "");
+    $limit=intval($argv[3] ?? 0);
+    if ($limit==0) {
+        $limit=5000;
+    }
+    for ($i=$current['height']-$limit;$i<=$current['height'];$i++) {
+        $data=peer_post($peer."/peer.php?q=getBlock", ["height" => $i]);
+        if ($data==false) {
+            continue;
+        }
+        $our=$block->export(false, $i);
+        if ($data!=$our) {
+            echo "Failed block -> $i\n";
+            if (isset($argv[4]) && $argv[4]=="dump") {
+                echo "\n\n  ---- Internal ----\n\n";
+                var_dump($our);
+                echo "\n\n  ---- External ----\n\n";
+                var_dump($data);
+            }
+        }
+    }
+} elseif ($cmd=='compare-accounts') {
+    $peer=trim($argv[2] ?? "");
+    $r=$db->run("SELECT id,balance FROM accounts");
+    foreach ($r as $x) {
+        $data=peer_post($peer."/api.php?q=getBalance", ["account" => $x['id']]);
+        if ($data==false) {
+            continue;
+        }
+        if ($data!=$x['balance']) {
+            echo "$x[id]\t\t$x[balance]\t$data\n";
+        }
+    }
+} elseif ($cmd=='masternode-hash') {
+    $res=$db->run("SELECT * FROM masternode ORDER by public_key ASC");
+    $block=new Block();
+    $current=$block->current();
+    echo "Height:\t\t$current[height]\n";
+    echo "Hash:\t\t".md5(json_encode($res))."\n\n";
+} elseif ($cmd=='accounts-hash') {
+    $res=$db->run("SELECT * FROM accounts ORDER by id ASC");
+    $block=new Block();
+    $current=$block->current();
+    echo "Height:\t\t$current[height]\n";
+    echo "Hash:\t\t".md5(json_encode($res))."\n\n";
+} elseif ($cmd == "version") {
+    echo "\n\n".VERSION."\n\n";
+} elseif ($cmd == "sendblock") {
+    $peer=trim($argv[3] ?? "");
+    if (!filter_var($peer, FILTER_VALIDATE_URL)) {
+        die("Invalid peer hostname");
+    }
+    $peer = filter_var($peer, FILTER_SANITIZE_URL);
+    $height=intval($argv[2] ?? "");
+    $block=new Block();
+    $data = $block->export("", $height);
+
+    
+    if ($data===false) {
+        die("Could not find this block");
+    }
+    $response = peer_post($peer."/peer.php?q=submitBlock", $data, 60, true);
+    var_dump($response);
+} elseif ($cmd == "recheck-external-blocks") {
+    $peer=trim($argv[2] ?? "");
+    if (!filter_var($peer, FILTER_VALIDATE_URL)) {
+        die("Invalid peer hostname");
+    }
+    $peer = filter_var($peer, FILTER_SANITIZE_URL);
+
+
+    $blocks = [];
+    $block = new Block();
+    $height=intval($argv[3] ?? 0);
+
+    $last=peer_post($peer."/peer.php?q=currentBlock");
+
+    $b=peer_post($peer."/peer.php?q=getBlock", ["height"=>$height]);
+
+    for ($i = $height+1; $i <= $last['height']; $i++) {
+        $c=peer_post($peer."/peer.php?q=getBlock", ["height"=>$i]);
+
+        if (!$block->mine(
+            $c['public_key'],
+            $c['nonce'],
+            $c['argon'],
+            $c['difficulty'],
+            $b['id'],
+            $b['height'],
+            $c['date']
+        )) {
+            print("Invalid block detected. $c[height] - $c[id]\n");
+            break;
+        }
+        echo "Block $i -> ok\n";
+        $b=$c;
+    }
 } else {
     echo "Invalid command\n";
 }

@@ -3,6 +3,7 @@
 // simple santization function to accept only alphanumeric characters
 function san($a, $b = "")
 {
+    if(empty($a)) return "";
     $a = preg_replace("/[^a-zA-Z0-9".$b."]/", "", $a);
 
     return $a;
@@ -10,12 +11,14 @@ function san($a, $b = "")
 
 function san_ip($a)
 {
+    if(empty($a)) return "";
     $a = preg_replace("/[^a-fA-F0-9\[\]\.\:]/", "", $a);
     return $a;
 }
 
 function san_host($a)
 {
+    if(empty($a)) return "";
     $a = preg_replace("/[^a-zA-Z0-9\.\-\:\/]/", "", $a);
     return $a;
 }
@@ -24,6 +27,10 @@ function san_host($a)
 function api_err($data)
 {
     global $_config;
+
+    if (!headers_sent()) {
+        header('Content-Type: application/json');
+    }
     echo json_encode(["status" => "error", "data" => $data, "coin" => $_config['coin']]);
     exit;
 }
@@ -32,6 +39,10 @@ function api_err($data)
 function api_echo($data)
 {
     global $_config;
+
+    if (!headers_sent()) {
+        header('Content-Type: application/json');
+    }
     echo json_encode(["status" => "ok", "data" => $data, "coin" => $_config['coin']]);
     exit;
 }
@@ -39,6 +50,10 @@ function api_echo($data)
 // log function, shows only in cli atm
 function _log($data, $verbosity = 0)
 {
+    global $_config;
+    if ($_config['log_verbosity'] < $verbosity) {
+        return;
+    }
     $date = date("[Y-m-d H:i:s]");
     $trace = debug_backtrace();
     $loc = count($trace) - 1;
@@ -56,7 +71,6 @@ function _log($data, $verbosity = 0)
     if (php_sapi_name() === 'cli') {
         echo $res;
     }
-    global $_config;
     if ($_config['enable_logging'] == true && $_config['log_verbosity'] >= $verbosity) {
         @file_put_contents($_config['log_file'], $res, FILE_APPEND);
     }
@@ -239,6 +253,11 @@ function ec_verify($data, $signature, $key)
     }
     return false;
 }
+// verify the validity of an url
+function isValidURL($url)
+{
+    return preg_match('|^(ht)?(f)?tp(s)?://[a-z0-9-]+(.[a-z0-9-]+)*(:[0-9]+)?(/.*)?$|i', $url);
+}
 
 // POST data to an URL (usualy peer). The data is an array, json encoded with is sent as $_POST['data']
 function peer_post($url, $data = [], $timeout = 60, $debug = false)
@@ -246,6 +265,9 @@ function peer_post($url, $data = [], $timeout = 60, $debug = false)
     global $_config;
     if ($debug) {
         echo "\nPeer post: $url\n";
+    }
+    if (!isValidURL($url)) {
+        return false;
     }
     $postdata = http_build_query(
         [
@@ -266,14 +288,14 @@ function peer_post($url, $data = [], $timeout = 60, $debug = false)
 
     $context = stream_context_create($opts);
 
-    $result = file_get_contents($url, false, $context);
+    $result = @file_get_contents($url, false, $context);
     if ($debug) {
         echo "\nPeer response: $result\n";
     }
     $res = json_decode($result, true);
 
     // the function will return false if something goes wrong
-    if ($res['status'] != "ok" || $res['coin'] != $_config['coin']) {
+    if ($res==false || is_null($res) || $res['status'] != "ok" || $res['coin'] != $_config['coin']) {
         return false;
     }
     return $res['data'];

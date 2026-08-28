@@ -103,6 +103,50 @@ define({ "api": [
   },
   {
     "type": "get",
+    "url": "/api.php?q=checkAddress",
+    "title": "22. checkAddress",
+    "name": "checkAddress",
+    "group": "API",
+    "description": "<p>Checks the validity of an address.</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": false,
+            "field": "account",
+            "description": "<p>Account id / address</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "string",
+            "optional": true,
+            "field": "public_key",
+            "description": "<p>Public key</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "boolean",
+            "optional": false,
+            "field": "data",
+            "description": "<p>True if the address is valid, false otherwise.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api.php",
+    "groupTitle": "API"
+  },
+  {
+    "type": "get",
     "url": "/api.php?q=checkSignature",
     "title": "17. checkSignature",
     "name": "checkSignature",
@@ -303,7 +347,7 @@ define({ "api": [
   {
     "type": "get",
     "url": "/api.php?q=getAlias",
-    "title": "189. getAlias",
+    "title": "19. getAlias",
     "name": "getAlias",
     "group": "API",
     "description": "<p>Returns the alias of an account</p>",
@@ -504,6 +548,13 @@ define({ "api": [
             "optional": true,
             "field": "block",
             "description": "<p>Block id</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "boolean",
+            "optional": true,
+            "field": "includeMiningRewards",
+            "description": "<p>Include mining rewards</p>"
           }
         ]
       }
@@ -854,7 +905,7 @@ define({ "api": [
             "type": "numeric",
             "optional": true,
             "field": "limit",
-            "description": "<p>Number of confirmed transactions, max 1000, min 1</p>"
+            "description": "<p>Number of confirmed transactions, max 100, min 1</p>"
           }
         ]
       }
@@ -1017,6 +1068,86 @@ define({ "api": [
   },
   {
     "type": "get",
+    "url": "/api.php?q=node-info",
+    "title": "21. node-info",
+    "name": "node_info",
+    "group": "API",
+    "description": "<p>Returns details about the node.</p>",
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>A collection of data about the node.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "string",
+            "optional": false,
+            "field": "data.hostname",
+            "description": "<p>The hostname of the node.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "string",
+            "optional": false,
+            "field": "data.version",
+            "description": "<p>The current version of the node.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "string",
+            "optional": false,
+            "field": "data.dbversion",
+            "description": "<p>The database schema version for the node.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "number",
+            "optional": false,
+            "field": "data.accounts",
+            "description": "<p>The number of accounts known by the node.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "number",
+            "optional": false,
+            "field": "data.transactions",
+            "description": "<p>The number of transactions known by the node.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "number",
+            "optional": false,
+            "field": "data.mempool",
+            "description": "<p>The number of transactions in the mempool.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "number",
+            "optional": false,
+            "field": "data.masternodes",
+            "description": "<p>The number of masternodes known by the node.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "number",
+            "optional": false,
+            "field": "data.peers",
+            "description": "<p>The number of valid peers.</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api.php",
+    "groupTitle": "API"
+  },
+  {
+    "type": "get",
     "url": "/api.php?q=randomNumber",
     "title": "16. randomNumber",
     "name": "randomNumber",
@@ -1065,6 +1196,51 @@ define({ "api": [
             "optional": false,
             "field": "data",
             "description": "<p>The random number</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "./api.php",
+    "groupTitle": "API"
+  },
+  {
+    "type": "get",
+    "url": "/api.php?q=sanity",
+    "title": "20. sanity",
+    "name": "sanity",
+    "group": "API",
+    "description": "<p>Returns details about the node's sanity process.</p>",
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>A collection of data about the sanity process.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "boolean",
+            "optional": false,
+            "field": "data.sanity_running",
+            "description": "<p>Whether the sanity process is currently running.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "number",
+            "optional": false,
+            "field": "data.last_sanity",
+            "description": "<p>The timestamp for the last time the sanity process was run.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "boolean",
+            "optional": false,
+            "field": "data.sanity_sync",
+            "description": "<p>Whether the sanity process is currently synchronising.</p>"
           }
         ]
       }

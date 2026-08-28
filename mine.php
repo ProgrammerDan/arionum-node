@@ -23,7 +23,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE
 OR OTHER DEALINGS IN THE SOFTWARE.
 */
-require_once("include/init.inc.php");
+require_once __DIR__.'/include/init.inc.php';
 $block = new Block();
 $acc = new Account();
 set_time_limit(360);
@@ -56,6 +56,19 @@ if ($q == "info") {
             $argon_threads=1;
             $argon_time=1;
         }
+     } elseif($current_height>=80458){
+	if($current_height%2==0){
+	    $argon_mem=524288;
+            $argon_threads=1;
+            $argon_time=1;
+	} else {
+	    $argon_mem=16384;
+            $argon_threads=4;
+            $argon_time=4;
+
+	}
+
+	
     } else {
         if ($current_height%3==0) {
             $argon_mem=524288;
@@ -67,7 +80,7 @@ if ($q == "info") {
                 "SELECT public_key FROM masternode WHERE status=1 AND blacklist<:current AND height<:start ORDER by last_won ASC, public_key ASC LIMIT 1",
                 [":current"=>$current_height, ":start"=>$current_height-360]
             );
-            $recommendation="pause";
+            //$recommendation="pause";
             if ($winner===false) {
                 $recommendation="mine";
             }
@@ -105,6 +118,7 @@ if ($q == "info") {
         if ($res) {
             //if the new block is generated, propagate it to all peers in background
             $current = $block->current();
+            $current['id']=escapeshellarg(san($current['id']));
             system("php propagate.php block $current[id]  > /dev/null 2>&1  &");
             api_echo("accepted");
         }
@@ -180,6 +194,7 @@ if ($q == "info") {
         if ($res) {
             //if the new block is generated, propagate it to all peers in background
             $current = $block->current();
+            $current['id']=escapeshellarg(san($current['id']));
             system("php propagate.php block $current[id]  > /dev/null 2>&1  &");
             api_echo("accepted");
         } else {

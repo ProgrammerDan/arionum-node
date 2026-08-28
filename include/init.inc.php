@@ -1,24 +1,30 @@
 <?php
 // ARO version
-define("VERSION", "0.4.1");
-// Amsterdam timezone by default, should probably be moved to config
+define("VERSION", "1.0.0-alpha.8");
+// UTC timezone by default
 date_default_timezone_set("UTC");
 
-//error_reporting(E_ALL & ~E_NOTICE);
-error_reporting(0);
-ini_set('display_errors', "off");
-
+ini_set('display_errors', 0);
+ini_set('display_startup_errors', 0); 
 // not accessible directly
 if (php_sapi_name() !== 'cli' && substr_count($_SERVER['PHP_SELF'], "/") > 1) {
     die("This application should only be run in the main directory /");
 }
+require_once __DIR__.'/config.inc.php';
+if(isset($_config['log_php_errors']) && $_config['log_php_errors'] == true){
+    error_reporting(E_ALL);
+} else {
+    error_reporting(0);
+}
+require_once __DIR__.'/Exception.php';
 
-require_once("include/config.inc.php");
-require_once("include/db.inc.php");
-require_once("include/functions.inc.php");
-require_once("include/block.inc.php");
-require_once("include/account.inc.php");
-require_once("include/transaction.inc.php");
+require_once __DIR__.'/db.inc.php';
+require_once __DIR__.'/functions.inc.php';
+require_once __DIR__.'/Blacklist.php';
+require_once __DIR__.'/InitialPeers.php';
+require_once __DIR__.'/block.inc.php';
+require_once __DIR__.'/account.inc.php';
+require_once __DIR__.'/transaction.inc.php';
 
 if ($_config['db_pass'] == "ENTER-DB-PASS") {
     die("Please update your config file and set your db password");
@@ -57,7 +63,7 @@ foreach ($query as $res) {
 }
 
 // nothing is allowed while in maintenance
-if ($_config['maintenance'] == 1) {
+if (isset($_config['maintenance']) && $_config['maintenance'] == 1) {
     api_err("under-maintenance");
 }
 
@@ -71,13 +77,10 @@ if (file_exists("tmp/db-update")) {
     if($ram<1700000) {
         die("The node requires at least 2 GB of RAM");
     }
-    if($_config['masternode']==true && $ram<7000000){
-        die("The masternode require at least 8GB of RAM");
-    }
     $res = unlink("tmp/db-update");
     if ($res) {
         echo "Updating db schema! Please refresh!\n";
-        require_once("include/schema.inc.php");
+        require_once __DIR__.'/schema.inc.php';
         exit;
     }
     echo "Could not access the tmp/db-update file. Please give full permissions to this file\n";
@@ -94,9 +97,13 @@ if ($_config['testnet'] == true) {
 }
 
 // current hostname
-$hostname = (!empty($_SERVER['HTTPS']) ? 'https' : 'http')."://".san_host($_SERVER['HTTP_HOST']);
+$http_host=san_host($_SERVER['HTTP_HOST'] ?? "");
+$hostname = (!empty($_SERVER['HTTPS']) ? 'https' : 'http')."://".$http_host;
 // set the hostname to the current one
-if ($hostname != $_config['hostname'] && $_SERVER['HTTP_HOST'] != "localhost" && $_SERVER['HTTP_HOST'] != "127.0.0.1" && $_SERVER['hostname'] != '::1' && php_sapi_name() !== 'cli' && ($_config['allow_hostname_change'] != false || empty($_config['hostname']))) {
+if(!isset($_config['hostname'])){
+    $_config['hostname']="";
+}
+if ($hostname != $_config['hostname'] && $http_host != "localhost" && $http_host != "127.0.0.1" && $http_host != '::1' && php_sapi_name() !== 'cli' && ($_config['allow_hostname_change'] != false || empty($_config['hostname']))) {
     $db->run("UPDATE config SET val=:hostname WHERE cfg='hostname' LIMIT 1", [":hostname" => $hostname]);
     $_config['hostname'] = $hostname;
 }
